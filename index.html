@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="casino-root">
+    <header>
+      <nav class="navbar">
+        <div class="logo"><span>♠</span> VIRTUAL CASINO</div>
+        <div class="nav-links">
+          <a href="#home">Home</a>
+          <a href="#games">Games</a>
+          <a href="#statistics">Statistics</a>
+          <a href="#history">History</a>
+        </div>
+        <div class="balance-area">
+          <div>
+            <small>DEMO BALANCE</small>
+            <strong id="navBalance">100,000 CREDITS</strong>
+          </div>
+          <button type="button" class="reset-button" id="resetDemo">RESET DEMO</button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="demo-banner">DEMO MODE — VIRTUAL CREDITS ONLY</div>
+
+    <main>
+      <section id="home" class="hero">
+        <div class="hero-content">
+          <div class="hero-label">◆ LOCAL SIMULATION ◆</div>
+          <h1>WELCOME TO THE<br /><span>VIRTUAL CASINO</span></h1>
+          <p>
+            A simulated floor with a live European wheel, three-reel slots, blackjack, mines,
+            crash, twenty cases and player-versus-bot case battles. Virtual credits only.
+          </p>
+          <div class="hero-balance">
+            <span>Your virtual balance</span>
+            <strong id="heroBalance">100,000 CREDITS</strong>
+          </div>
+          <div class="hero-buttons">
+            <a class="gold-button" href="#games">PLAY NOW</a>
+            <button type="button" class="gold-button battle-cta" data-open="casebattle">CASE BATTLE</button>
+            <a href="#games" class="outline-button">VIEW GAMES</a>
+          </div>
+          <p class="warning">⚠ DEMO ONLY — NO REAL MONEY IS INVOLVED</p>
+        </div>
+      </section>
+
+      <section class="quick-stats">
+        <div class="quick-stat"><span class="stat-icon">◎</span><div><small>BALANCE</small><strong id="statBalance">100,000</strong></div></div>
+        <div class="quick-stat"><span class="stat-icon">♟</span><div><small>GAMES PLAYED</small><strong id="statGames">0</strong></div></div>
+        <div class="quick-stat"><span class="stat-icon">▣</span><div><small>WIN RATE</small><strong id="statWinRate">0%</strong></div></div>
+        <div class="quick-stat"><span class="stat-icon">▲</span><div><small>NET RESULT</small><strong id="statNet">0</strong></div></div>
+      </section>
+
+      <section id="games" class="section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label">CHOOSE YOUR GAME</span>
+            <h2>Casino Games</h2>
+          </div>
+          <p>All games use independent random outcomes and fictional credits.</p>
+        </div>
+        <div class="game-grid" id="gameGrid"></div>
+      </section>
+
+      <section class="section recent-section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label">LATEST ACTIVITY</span>
+            <h2>Recent Results</h2>
+          </div>
+        </div>
+        <div class="recent-results" id="recentResults">
+          <div class="empty-state">No games played yet.</div>
+        </div>
+      </section>
+
+      <section id="statistics" class="section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label">SESSION DATA</span>
+            <h2>Statistics</h2>
+          </div>
+        </div>
+        <div class="statistics-grid" id="statisticsGrid"></div>
+      </section>
+
+      <section class="section information">
+        <div class="info-panel">
+          <span class="section-label">TRANSPARENCY</span>
+          <h2>How the simulator works</h2>
+          <div class="info-grid">
+            <div><h3>Roulette</h3><p>European wheel, 37 pockets. The ball is locked to a single pocket center — it cannot rest on two numbers.</p></div>
+            <div><h3>Slots</h3><p>Three independently selected reels with a fixed payout table.</p></div>
+            <div><h3>Blackjack</h3><p>A shuffled 52-card deck. Dealer hits below 17 and stands on 17+.</p></div>
+            <div><h3>Coin Flip</h3><p>You take one face, the house bot takes the other. Each side is 50%.</p></div>
+            <div><h3>Dice</h3><p>A 3D cube tumbles while a 1–100 result is generated.</p></div>
+            <div><h3>Mines</h3><p>Easy 3 through Insane 16 mines on a 5×5 board.</p></div>
+            <div><h3>Crash</h3><p>The multiplier climbs slowly. Cash out before the hidden crash point.</p></div>
+            <div><h3>Cases</h3><p>Twenty cases from 100 up to 5,000,000 credits.</p></div>
+            <div><h3>Case Battle</h3><p>You and the house bot open the same cases. Higher total takes the pot.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="history" class="section">
+        <div class="section-heading history-heading">
+          <div>
+            <span class="section-label">SESSION LOG</span>
+            <h2>Game History</h2>
+          </div>
+          <button type="button" class="danger-button" id="clearHistory">CLEAR HISTORY</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Game</th><th>Bet</th><th>Outcome</th><th>Result</th><th>Balance</th></tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+          <div class="empty-state" id="historyEmpty">No games have been played.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-logo">♠ VIRTUAL CASINO</div>
+      <p>This website is a fictional software simulation using virtual credits only. No real money, payments, deposits or withdrawals are supported.</p>
+      <div class="footer-demo">DEMO MODE • VIRTUAL CREDITS ONLY</div>
+    </footer>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content" id="modalContent">
+      <button type="button" class="close-button" id="closeModal" aria-label="Close game">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
