@@ -40,14 +40,57 @@
   ].map(([name, icon, price]) => ({
     name, icon, price,
     rewards: [
-      { name: "Nothing", amount: 0, chance: 18 },
-      { name: "Scrap", amount: Math.round(price * 0.2), chance: 22 },
-      { name: "Pack", amount: Math.round(price * 0.6), chance: 25 },
-      { name: "Full Return", amount: price, chance: 20 },
-      { name: "Double", amount: price * 2, chance: 10 },
-      { name: "Jackpot", amount: price * 5, chance: 5 },
+      { name: "Nothing", amount: 0, chance: 18, rarity: "consumer" },
+      { name: "Scrap", amount: Math.round(price * 0.2), chance: 22, rarity: "industrial" },
+      { name: "Pack", amount: Math.round(price * 0.6), chance: 25, rarity: "milspec" },
+      { name: "Full Return", amount: price, chance: 20, rarity: "restricted" },
+      { name: "Double", amount: price * 2, chance: 10, rarity: "classified" },
+      { name: "Jackpot", amount: price * 5, chance: 5, rarity: "covert" },
     ],
   }));
+  const CS2_TILE = 128, CS2_GAP = 8, CS2_STRIDE = 136, CS2_WIN = 42, CS2_LEN = 54;
+  function cs2Strip(c, winner) {
+    return Array.from({ length: CS2_LEN }, (_, i) => i === CS2_WIN ? winner : c.rewards[rnd(0, c.rewards.length - 1)]);
+  }
+  function cs2Item(item, won) {
+    return `<div class="cs2-item rarity-${item.rarity}${won ? " won" : ""}"><div class="cs2-item-art"></div><div class="cs2-item-meta"><small>${item.name.toUpperCase()}</small><strong>${item.amount ? fmt(item.amount) : "—"}</strong></div></div>`;
+  }
+  function cs2Ease(t) { return 1 - Math.pow(1 - t, 4.2); }
+  let cs2Audio = null;
+  function cs2Tick(pitch) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!cs2Audio) cs2Audio = new AC();
+    if (cs2Audio.state === "suspended") cs2Audio.resume();
+    const t0 = cs2Audio.currentTime;
+    const o = cs2Audio.createOscillator();
+    const g = cs2Audio.createGain();
+    o.type = "square";
+    o.frequency.value = 1400 + pitch * 900;
+    g.gain.setValueAtTime(0.035, t0);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + 0.045);
+    o.connect(g); g.connect(cs2Audio.destination);
+    o.start(t0); o.stop(t0 + 0.05);
+  }
+  function spinCs2(view, track, duration) {
+    return new Promise((resolve) => {
+      const jitter = (Math.random() - 0.5) * 18;
+      const target = CS2_WIN * CS2_STRIDE + CS2_TILE / 2 - view.clientWidth / 2 + jitter;
+      track.style.transform = "translate3d(0,0,0)";
+      const start = performance.now();
+      let last = -1;
+      const frame = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const x = target * cs2Ease(t);
+        track.style.transform = `translate3d(${-x}px,0,0)`;
+        const tile = Math.floor((x + view.clientWidth / 2) / CS2_STRIDE);
+        if (tile !== last) { last = tile; cs2Tick(1 - t); }
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+      };
+      requestAnimationFrame(frame);
+    });
+  }
   const MINES_DIFF = [
     { id: "easy", label: "EASY", mines: 3 },
     { id: "normal", label: "NORMAL", mines: 5 },
@@ -955,44 +998,52 @@
           <h3>${item.name}</h3>
           <div class="case-price">${fmt(item.price)} CREDITS</div>
         </button>`).join("");
-      $("#caseRewards", root).innerHTML = c.rewards.map((r) => `<div class="case-reward-row"><span>${r.name} · ${r.chance}%</span><strong>${fmt(r.amount)}</strong></div>`).join("");
+      $("#caseRewards", root).innerHTML = c.rewards.map((r) => `<div class="case-reward-row"><span class="cs2-chip rarity-${r.rarity}">${r.name} · ${r.chance}%</span><strong>${fmt(r.amount)}</strong></div>`).join("");
+      const filler = Array.from({ length: 20 }, (_, i) => c.rewards[i % c.rewards.length]);
+      $("#cTrack", root).innerHTML = filler.map((it) => cs2Item(it, false)).join("");
+      $("#caseLane", root).textContent = c.name.toUpperCase();
       $$(".case-card", root).forEach((b) => b.addEventListener("click", () => { if (opening) return; sel = Number(b.dataset.i); paint(); }));
     };
     root.innerHTML = `
       <div class="game-ui">
         <h2 class="modal-title">Case Opening</h2>
-        <p class="modal-subtitle">20 unique cases • prices from 100 to 5,000,000 credits</p>
+        <p class="modal-subtitle">20 unique cases • CS2-style item reel</p>
+        <div class="cs2-stage">
+          <div class="cs2-lane team-ct">
+            <div class="cs2-lane-head"><span id="caseLane">CASE</span></div>
+            <div class="cs2-window" id="cView"><div class="cs2-marker" aria-hidden><i></i></div><div class="cs2-fade cs2-fade-left"></div><div class="cs2-fade cs2-fade-right"></div><div class="cs2-track" id="cTrack"></div></div>
+          </div>
+        </div>
         <div class="case-grid" id="caseGrid"></div>
         <div class="case-rewards" id="caseRewards"></div>
-        <div class="case-opening" id="opener"><div class="case-roll" id="rollStrip"></div><div class="case-result" id="caseResult">Pick a case</div></div>
+        <div class="case-result" id="caseResult">Pick a case</div>
         <div class="result-message"></div>
         <button type="button" class="action-button" id="openBtn">OPEN CASE</button>
         <div class="rules">The reward is rolled before the animation. Jackpots pay 5× the case price.</div>
       </div>`;
     paint();
-    $("#openBtn", root).addEventListener("click", () => {
+    $("#openBtn", root).addEventListener("click", async () => {
       if (opening) return;
       const c = CASE_DEFS[sel];
       if (c.price > data.balance) return msg(root, "Not enough credits.", "loss");
       if (!takeBet(c.price)) return msg(root, "Not enough credits.", "loss");
       const reward = rollCase(c);
       opening = true; setBusy(true); msg(root, "", "");
-      $("#opener", root).classList.add("shaking");
-      const items = [rollCase(c).name, reward.name, rollCase(c).name];
-      $("#rollStrip", root).innerHTML = items.map((n, i) => `<div class="case-roll-item${i === 1 ? " current" : ""}">${n}</div>`).join("");
-      $("#caseResult", root).textContent = "OPENING…";
       $("#openBtn", root).disabled = true;
-      setTimeout(() => {
-        addWin(reward.amount);
-        const profit = reward.amount - c.price;
-        record("Cases", c.price, `${c.name} → ${reward.name}`, profit);
-        $("#caseResult", root).className = `case-result ${profit > 0 ? "win" : profit < 0 ? "loss" : "push"}`;
-        $("#caseResult", root).textContent = `${reward.name} · ${fmt(reward.amount)}`;
-        msg(root, profit >= 0 ? `+${fmt(profit)} CREDITS` : `${fmt(profit)} CREDITS`, profit > 0 ? "win" : "loss");
-        $("#opener", root).classList.remove("shaking");
-        $("#openBtn", root).disabled = false;
-        opening = false; setBusy(false);
-      }, 1600);
+      $("#caseResult", root).textContent = "UNBOXING…";
+      const strip = cs2Strip(c, reward);
+      $("#cTrack", root).innerHTML = strip.map((it) => cs2Item(it, false)).join("");
+      await spinCs2($("#cView", root), $("#cTrack", root), 5200);
+      const items = $$(".cs2-item", $("#cTrack", root));
+      if (items[CS2_WIN]) items[CS2_WIN].classList.add("won");
+      addWin(reward.amount);
+      const profit = reward.amount - c.price;
+      record("Cases", c.price, `${c.name} → ${reward.name}`, profit);
+      $("#caseResult", root).className = `case-result ${profit > 0 ? "win" : profit < 0 ? "loss" : "push"}`;
+      $("#caseResult", root).textContent = `${reward.name} · ${fmt(reward.amount)}`;
+      msg(root, profit >= 0 ? `+${fmt(profit)} CREDITS` : `${fmt(profit)} CREDITS`, profit > 0 ? "win" : "loss");
+      $("#openBtn", root).disabled = false;
+      opening = false; setBusy(false);
     });
   }
 
@@ -1000,7 +1051,7 @@
   function openBattle(root) {
     let sel = 4, rounds = 3;
     root.innerHTML = `
-      <div class="game-ui case-battle-ui">
+      <div class="game-ui case-battle-ui cs2-battle">
         <div class="battle-header"><h2 class="modal-title">Case Battle</h2><p class="modal-subtitle">Winner takes every opened credit</p></div>
         <div class="battle-players">
           <div class="battle-player player" id="pBox"><div class="battle-player-icon">♠</div><div class="battle-player-name">YOU</div><div class="battle-score" id="pScore">0</div></div>
@@ -1010,9 +1061,16 @@
         <div class="battle-case-grid" id="bcases"></div>
         <div class="battle-rounds">${[1,2,3,4,5].map((n) => `<button type="button" class="battle-round${n === 3 ? " selected" : ""}" data-r="${n}">${n} ROUND${n > 1 ? "S" : ""}</button>`).join("")}</div>
         <p class="modal-subtitle" id="potLine"></p>
-        <div class="battle-roll" id="broll">
-          <div class="battle-roll-box player"><div class="battle-roll-name">YOU</div><div class="battle-roll-reward" id="pRew">—</div></div>
-          <div class="battle-roll-box bot"><div class="battle-roll-name">HOUSE BOT</div><div class="battle-roll-reward" id="bRew">—</div></div>
+        <div class="cs2-stage">
+          <div class="cs2-lane team-ct">
+            <div class="cs2-lane-head"><span>YOU</span></div>
+            <div class="cs2-window" id="pView"><div class="cs2-marker" aria-hidden><i></i></div><div class="cs2-fade cs2-fade-left"></div><div class="cs2-fade cs2-fade-right"></div><div class="cs2-track" id="pTrack"></div></div>
+          </div>
+          <div class="cs2-lane team-t">
+            <div class="cs2-lane-head"><span>HOUSE BOT</span></div>
+            <div class="cs2-window" id="bView"><div class="cs2-marker" aria-hidden><i></i></div><div class="cs2-fade cs2-fade-left"></div><div class="cs2-fade cs2-fade-right"></div><div class="cs2-track" id="bTrack"></div></div>
+          </div>
+          <div class="cs2-landed-row" id="landedRow"></div>
         </div>
         <div class="battle-result" id="bresult"></div>
         <div class="result-message"></div>
@@ -1031,6 +1089,7 @@
         if (busy) return;
         sel = Number(b.dataset.i);
         paintCases();
+        idleFill();
         pot();
       }));
       pot();
@@ -1040,6 +1099,13 @@
       $("#potLine", root).textContent = `${rounds} × ${c.name} · ${fmt(c.price * rounds)} credits to enter`;
     };
     paintCases();
+    const idleFill = () => {
+      const c = CASE_DEFS[sel];
+      const filler = Array.from({ length: 20 }, (_, i) => c.rewards[i % c.rewards.length]);
+      $("#pTrack", root).innerHTML = filler.map((it) => cs2Item(it, false)).join("");
+      $("#bTrack", root).innerHTML = filler.map((it) => cs2Item(it, false)).join("");
+    };
+    idleFill();
     $$(".battle-round", root).forEach((b) => b.addEventListener("click", () => {
       if (busy) return;
       rounds = Number(b.dataset.r);
@@ -1060,24 +1126,30 @@
       const hist = [];
       for (let r = 1; r <= rounds; r++) {
         const pR = rollCase(c), bR = rollCase(c);
-        $("#broll", root).classList.remove("slowing");
-        $("#pRew", root).classList.add("rolling");
-        $("#bRew", root).classList.add("rolling");
-        $("#pRew", root).textContent = "…";
-        $("#bRew", root).textContent = "…";
-        await sleep(700);
-        $("#broll", root).classList.add("slowing");
-        await sleep(500);
+        const pStrip = cs2Strip(c, pR);
+        const bStrip = cs2Strip(c, bR);
+        $("#pTrack", root).innerHTML = pStrip.map((it) => cs2Item(it, false)).join("");
+        $("#bTrack", root).innerHTML = bStrip.map((it) => cs2Item(it, false)).join("");
+        $("#pTrack", root).style.transform = "translate3d(0,0,0)";
+        $("#bTrack", root).style.transform = "translate3d(0,0,0)";
+        $("#landedRow", root).innerHTML = "";
+        await Promise.all([
+          spinCs2($("#pView", root), $("#pTrack", root), 5000),
+          spinCs2($("#bView", root), $("#bTrack", root), 5400),
+        ]);
+        const pItems = $$(".cs2-item", $("#pTrack", root));
+        const bItems = $$(".cs2-item", $("#bTrack", root));
+        if (pItems[CS2_WIN]) pItems[CS2_WIN].classList.add("won");
+        if (bItems[CS2_WIN]) bItems[CS2_WIN].classList.add("won");
         pTot += pR.amount; bTot += bR.amount;
-        $("#pRew", root).classList.remove("rolling");
-        $("#bRew", root).classList.remove("rolling");
-        $("#pRew", root).textContent = fmt(pR.amount);
-        $("#bRew", root).textContent = fmt(bR.amount);
         $("#pScore", root).textContent = fmt(pTot);
         $("#bScore", root).textContent = fmt(bTot);
+        $("#landedRow", root).innerHTML =
+          `<span class="cs2-chip rarity-${pR.rarity}">You · ${pR.name} · ${fmt(pR.amount)}</span>` +
+          `<span class="cs2-chip rarity-${bR.rarity}">Bot · ${bR.name} · ${fmt(bR.amount)}</span>`;
         hist.push({ round: r, p: pR.amount, b: bR.amount });
         $("#bh", root).innerHTML = hist.map((h) => `<div class="battle-history-row"><span>R${h.round}</span><span>You ${fmt(h.p)}</span><span>Bot ${fmt(h.b)}</span></div>`).join("");
-        await sleep(350);
+        await sleep(800);
       }
       const potAmt = pTot + bTot;
       let verdict, profit;

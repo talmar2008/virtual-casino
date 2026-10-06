@@ -3774,3 +3774,262 @@ footer p {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* =========================
+   CS2 CASE REELS
+========================= */
+
+:root {
+    --rarity-consumer: #b0c3d9;
+    --rarity-industrial: #5e98d9;
+    --rarity-milspec: #4b69ff;
+    --rarity-restricted: #8847ff;
+    --rarity-classified: #d32ce6;
+    --rarity-covert: #eb4b4b;
+}
+
+.cs2-battle {
+    text-align: center;
+}
+
+.cs2-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 8px 0 18px;
+}
+
+.cs2-lane-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.cs2-lane.team-ct .cs2-lane-head { color: #5e98d9; }
+.cs2-lane.team-t .cs2-lane-head { color: #eb4b4b; }
+
+.cs2-window {
+    position: relative;
+    overflow: hidden;
+    height: 188px;
+    border-radius: 6px;
+    background:
+        linear-gradient(180deg, #16191f, #0c0e12);
+    border: 1px solid #2c313a;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.55);
+}
+
+.cs2-track {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    display: flex;
+    gap: 8px;
+    will-change: transform;
+    padding-left: 8px;
+}
+
+.cs2-marker {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    z-index: 5;
+    background: #f5c451;
+    box-shadow: 0 0 12px rgba(245, 196, 81, 0.85);
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.cs2-marker i {
+    position: absolute;
+    left: 50%;
+    top: -1px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #f5c451;
+    transform: translateX(-50%);
+}
+
+.cs2-marker::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 10px solid #f5c451;
+    transform: translateX(-50%);
+}
+
+.cs2-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.cs2-fade-left {
+    left: 0;
+    background: linear-gradient(90deg, #0c0e12, transparent);
+}
+
+.cs2-fade-right {
+    right: 0;
+    background: linear-gradient(270deg, #0c0e12, transparent);
+}
+
+.cs2-item {
+    width: 128px;
+    height: 168px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 10px 12px;
+    border-radius: 4px;
+    background:
+        linear-gradient(180deg, #232830 0%, #14171c 70%);
+    border: 1px solid #2d333c;
+    position: relative;
+    overflow: hidden;
+    color: #cfd3da;
+}
+
+.cs2-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--rarity-consumer);
+}
+
+.cs2-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--rarity-consumer);
+}
+
+.cs2-item.rarity-consumer { color: var(--rarity-consumer); }
+.cs2-item.rarity-industrial { color: var(--rarity-industrial); }
+.cs2-item.rarity-milspec { color: var(--rarity-milspec); }
+.cs2-item.rarity-restricted { color: var(--rarity-restricted); }
+.cs2-item.rarity-classified { color: var(--rarity-classified); }
+.cs2-item.rarity-covert { color: var(--rarity-covert); }
+
+.cs2-item.rarity-consumer::before,
+.cs2-item.rarity-consumer::after { background: var(--rarity-consumer); }
+.cs2-item.rarity-industrial::before,
+.cs2-item.rarity-industrial::after { background: var(--rarity-industrial); }
+.cs2-item.rarity-milspec::before,
+.cs2-item.rarity-milspec::after { background: var(--rarity-milspec); }
+.cs2-item.rarity-restricted::before,
+.cs2-item.rarity-restricted::after { background: var(--rarity-restricted); }
+.cs2-item.rarity-classified::before,
+.cs2-item.rarity-classified::after { background: var(--rarity-classified); }
+.cs2-item.rarity-covert::before,
+.cs2-item.rarity-covert::after { background: var(--rarity-covert); }
+
+.cs2-item-art {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+.cs2-item-art:empty {
+    position: relative;
+}
+.cs2-item-art:empty::before {
+    content: "";
+    width: 54px;
+    height: 38px;
+    border: 2px solid currentColor;
+    border-radius: 2px;
+    background:
+        linear-gradient(currentColor, currentColor) 50% 50% / 100% 2px no-repeat,
+        linear-gradient(currentColor, currentColor) 50% 8px / 2px 100% no-repeat;
+    opacity: 0.75;
+    display: block;
+}
+
+.cs2-item-meta {
+    text-align: left;
+    padding-left: 6px;
+}
+
+.cs2-item-meta small {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: inherit;
+    opacity: 0.9;
+}
+
+.cs2-item-meta strong {
+    display: block;
+    margin-top: 2px;
+    color: #f4f5f7;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.cs2-item.won {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 1px currentColor, 0 0 22px color-mix(in srgb, currentColor 45%, transparent);
+    z-index: 2;
+}
+
+.cs2-landed-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cs2-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.cs2-chip.rarity-consumer { color: var(--rarity-consumer); }
+.cs2-chip.rarity-industrial { color: var(--rarity-industrial); }
+.cs2-chip.rarity-milspec { color: var(--rarity-milspec); }
+.cs2-chip.rarity-restricted { color: var(--rarity-restricted); }
+.cs2-chip.rarity-classified { color: var(--rarity-classified); }
+.cs2-chip.rarity-covert { color: var(--rarity-covert); }
+
+.cs2-battle .battle-player.player { border-color: #5e98d9; }
+.cs2-battle .battle-player.bot { border-color: #eb4b4b; }
+
+@media (max-width: 700px) {
+    .cs2-window { height: 168px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cs2-item.won { transform: none; }
+}
+
